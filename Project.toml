@@ -1,0 +1,17 @@
+name = "AllocationKit"
+uuid = "44cee6ac-cc62-4d77-a2ad-0dd48dabd6ef"
+authors = ["Lukas Devos <lukas.devos@ugent.be>"]
+version = "0.0.1-DEV"
+
+[deps]
+Bumper = "8ce10254-0962-460f-a3d8-1f77fea1446e"
+TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
+
+[compat]
+julia = "1.9"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
