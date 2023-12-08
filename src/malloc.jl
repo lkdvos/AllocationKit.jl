@@ -1,35 +1,34 @@
 const MallocBackend = TensorOperations.Backend{:malloc}
 
-function TensorOperations.tensoralloc(ttype::Type{<:AbstractArray{T}}, structure, istemp, ::MallocBackend) where {T}
+function TensorOperations.tensoralloc(::Type{Array{T,N}}, structure, istemp, ::MallocBackend) where {T,N}
     if istemp
+        @assert isbitstype(T)
         ptr = Base.Libc.malloc(prod(structure) * sizeof(T))
         return unsafe_wrap(Array, convert(Ptr{T}, ptr), structure)
     else
-        return tensoralloc(ttype, structure, istemp)
+        return tensoralloc(Array{T,N}, structure, istemp)
     end
 end
 
-function TensorOperations.tensorfree!(t::AbstractArray, ::MallocBackend)
+function TensorOperations.tensorfree!(t::Array, ::MallocBackend)
     Base.Libc.free(pointer(t))
     return nothing
 end
 
 const SafeMallocBackend = TensorOperations.Backend{:safemalloc}
 
-function TensorOperations.tensoralloc(ttype::Type{<:AbstractArray{T}}, structure, istemp, ::SafeMallocBackend) where {T}
+function TensorOperations.tensoralloc(::Type{Array{T,N}}, structure, istemp, ::SafeMallocBackend) where {T,N}
     if istemp
+        @assert isbitstype(T)
         ptr = Base.Libc.malloc(prod(structure) * sizeof(T))
         A = unsafe_wrap(Array, convert(Ptr{T}, ptr), structure)
-        finalizer(A) do x
-            Base.Libc.free(pointer(x))
-        end
-        return A
+        finalizer(Base.Fix2(TensorOperations.tensorfree!, MallocBackend()), A)
     else
-        return tensoralloc(ttype, structure, istemp)
+        return tensoralloc(Array{T,N}, structure, istemp)
     end
 end
 
-function TensorOperations.tensorfree!(t::AbstractArray, ::SafeMallocBackend)
+function TensorOperations.tensorfree!(t::Array, ::SafeMallocBackend)
     finalize(t)
     return nothing
 end
